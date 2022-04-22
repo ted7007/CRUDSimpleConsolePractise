@@ -1,5 +1,4 @@
 ﻿using CRUD.Context;
-using CRUD.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,31 +9,43 @@ namespace CRUD.View
 {
     class CRUDView
     {
+        #region fields
+
+        ApplicationContext dataBase;
+
+
+
+        #endregion
         public void Start()
         {
-            var isExit = false;
-            while (!isExit)
+            using (dataBase = new ApplicationContext())
             {
-                Console.WriteLine("Введите команду: CREATE/READ/UPDATE/DELETE");
-                string command = Console.ReadLine();
-                switch (command)
+                var isExit = false;
+                while (!isExit)
                 {
-                    case "CREATE":
-                        // Добавление
-                        Create();
-                        
-                        break;
-                    case "READ":
-                        Read();
-                        
-                        break;
-                    case "UPDATE":
-                        Update();
-                        break;
-                    case "DELETE":
-                        Delete();
-                        
-                        break;
+                    Console.WriteLine("Введите команду: CREATE/READ/UPDATE/DELETE");
+                    string command = Console.ReadLine();
+                    switch (command)
+                    {
+                        case "CREATE":
+                            Console.WriteLine("Введите имя, фамилию и возраст нового студента через пробел.");
+                            Create(Console.ReadLine());
+
+                            break;
+                        case "READ":
+                            Read();
+
+                            break;
+                        case "UPDATE":
+                            Console.WriteLine("Введите по очереди, через пробел id студента, данные которые следует изменить\n" +
+                                          "Затем новые данные - имя фамилию и возраст.");
+                            Update(Console.ReadLine());
+                            break;
+                        case "DELETE":
+                            Console.WriteLine("Введите Id студента для удаления");
+                            Delete(Console.ReadLine());
+                            break;
+                    }
                 }
             }
         }
@@ -42,23 +53,16 @@ namespace CRUD.View
         /// <summary>
         /// Процедура добавления нового студента в БД
         /// </summary>
-        public void Create()
+        public void Create(string answer)
         {
-            using (ApplicationContext db = new ApplicationContext())
+            try
             {
-                try
-                {
-                    Console.WriteLine("Введите имя, фамилию и возраст нового студента через пробел.");
-                    string[] data = Console.ReadLine().Split(' ');
-                    Student tom = new Student { firstName = data[0], lastName = data[1], age = Int32.Parse(data[2]) };
-                    // Добавление
-                    db.Students.Add(tom);
-                    db.SaveChanges();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                }
+                var data = ParseToData(answer);
+                dataBase.Add(data[1], data[2], Int32.Parse(data[3]));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
             }
         }
 
@@ -67,74 +71,87 @@ namespace CRUD.View
         /// </summary>
         public void Read()
         {
-            using (ApplicationContext db = new ApplicationContext())
+            try
             {
-                try
+                var list = dataBase.Read();
+                Console.WriteLine($"{"[Id]",4}{"[firstName]",20}{"[lastName]",20}{"[age]",5}");
+                foreach (var i in list)
                 {
-                    var list = db.Students.ToArray<Student>();
-                    Console.WriteLine($"{"[Id]",4}{"[firstName]",20}{"[lastName]",20}{"[age]",5}");
-                    foreach (var i in list)
-                    {
-                        Console.WriteLine($"{i.Id,4}{i.firstName,20}{i.lastName,20}{i.age,5}");
-                    }
+                    Console.WriteLine($"{i.Id,4}{i.firstName,20}{i.lastName,20}{i.age,5}");
                 }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
             }
         }
 
         /// <summary>
         /// Изменение студента в БД
         /// </summary>
-        public void Update()
+        public void Update(string answer)
         {
-            using (ApplicationContext db = new ApplicationContext())
+            try
             {
-                try
-                {
-                    Console.WriteLine("Введите Id студента для редактирования");
-                    var id = Console.ReadLine();
-                    var user = db.Find(new Student().GetType(), Int32.Parse(id)) as Student;
-                    if ((user is null))
-                    {
-                        Console.WriteLine("Студент не найден.");
-                        return;
-                    }
-                    Console.WriteLine("Введите по очереди, через пробел новые данные - имя фамилию и возраст.");
-                    string[] data = Console.ReadLine().Split(' ');
-                    user.firstName = data[0]; user.lastName = data[1]; user.age = Int32.Parse(data[2]);
-                    db.Update(user);
-                    db.SaveChanges();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                }
+                var data = ParseToData(answer);
+                dataBase.Update(Int32.Parse(data[0]), data[1], data[2], Int32.Parse(data[3]));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
             }
         }
 
         /// <summary>
         /// Процедура удаления студента из БД
         /// </summary>
-        public void Delete()
+        public void Delete(string answer)
         {
-            using (ApplicationContext db = new ApplicationContext())
+            try
             {
-                try
-                {
-                    Console.WriteLine("Введите Id студента для удаления");
-                    var id = Console.ReadLine();
-                    db.Remove(db.Find(new Student().GetType(), Int32.Parse(id)));
-                    db.SaveChanges();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                }
-
+                var id = Int32.Parse(ParseToData(answer)[0]);
+                dataBase.Delete(id);
             }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+
+        }
+
+        /// <summary>
+        /// Метод парса входных данных в данные студента
+        /// </summary>
+        /// <param name="lineWithData">Входные параметры вида "id firstname lastname age" </param>
+        /// <returns>Массив данных, где data[0] - id, data[1] - firstname, data[2] - lastname, data[3] - age</returns>
+        private string[] ParseToData(string lineWithData)
+        {
+            // 3 варианта: 1 - data содержит только id. 2 - Дата содержит только fName, lName, age. 3 - Дата содержит и 
+            string[] data = lineWithData.Split(' ');
+            int res = -1;
+            switch (data.Length)
+            {
+                case 1:
+                    if (!Int32.TryParse(data[0], out res))
+                        throw new ArgumentException("data[0] isn't id");
+                    break;
+                case 3:
+                    if (!Int32.TryParse(data[2], out res))
+                        throw new ArgumentException("lineWithData");
+                    var result = new string[4];
+                    result[1] = data[0];
+                    result[2] = data[1];
+                    result[3] = data[2];
+                    return result;
+                    break;
+                case 4:
+                    if (!Int32.TryParse(data[0], out res) || !(Int32.TryParse(data[2], out res)))
+                        throw new ArgumentException("lineWithData");
+                    break;
+                default:
+                    throw new ArgumentException("lineWithData");
+            }
+            return data;
         }
     }
 }
