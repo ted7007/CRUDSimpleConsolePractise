@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CRUD.View
 {
-    class CRUDView
+    public class CRUDView
     {
         #region fields
 
@@ -124,7 +124,7 @@ namespace CRUD.View
         /// </summary>
         /// <param name="lineWithData">Входные параметры вида "id firstname lastname age" </param>
         /// <returns>Массив данных, где data[0] - id, data[1] - firstname, data[2] - lastname, data[3] - age</returns>
-        private string[] ParseToData(string lineWithData)
+        public string[] ParseToData(string lineWithData)
         {
             // 3 варианта: 1 - data содержит только id. 2 - Дата содержит только fName, lName, age. 3 - Дата содержит и 
             string[] data = lineWithData.Split(' ');
