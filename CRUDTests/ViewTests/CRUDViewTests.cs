@@ -28,9 +28,54 @@ namespace CRUDTests.ViewTests
             //Assert
             for(int i = 0; i < 4; i++)
             {
-                Assert.AreEqual(res[0], rightRes[0]);
+                Assert.AreEqual(res[i], rightRes[i]);
             }
             
         }
+
+        /// <summary>
+        /// Метод который тестирует метод используя входные данные из одного значений
+        /// </summary>
+        [TestMethod]
+        public void ParseToDataTest_SingleData()
+        {
+            // Arrange 
+            var crudView = new CRUDView();
+
+            // Act
+            string[] res = crudView.ParseToData("5");
+
+            string[] rightRes = new string[] { "5" };
+
+            //Assert
+            for (int i = 0; i < rightRes.Length; i++)
+            {
+                Assert.AreEqual(res[i], rightRes[i]);
+            }
+
+        }
+
+
+        /// <summary>
+        /// Метод который тестирует метод используя входные данные из четырех значений
+        /// </summary>
+        [TestMethod]
+        public void ParseToDataTest_QuadData()
+        {
+            // Arrange 
+            var crudView = new CRUDView();
+
+            // Act
+            string[] res = crudView.ParseToData("4 Sasha Kosilov 18");
+
+            string[] rightRes = new string[] { "4", "Sasha", "Kosilov", "18" };
+
+            //Assert
+            for (int i = 0; i < rightRes.Length; i++)
+            {
+                Assert.AreEqual(res[0], rightRes[0]);
+            }
+        }
+
     }
 }

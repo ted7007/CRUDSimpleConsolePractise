@@ -145,7 +145,7 @@ namespace CRUD.View
                     return result;
                     break;
                 case 4:
-                    if (!Int32.TryParse(data[0], out res) || !(Int32.TryParse(data[2], out res)))
+                    if (!Int32.TryParse(data[0], out res) || !(Int32.TryParse(data[3], out res)))
                         throw new ArgumentException("lineWithData");
                     break;
                 default:
